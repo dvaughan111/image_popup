@@ -1,67 +1,237 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { margin: 0; padding: 10px; font-family: Arial; }
-        .popup-btn {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 15px;
+            background: transparent !important; /* Crucial for Jotform */
+        }
+        
+        .image-popup-container {
+            text-align: center;
+        }
+        
+        .popup-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             background: #4A6FA5;
             color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            text-decoration: none;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .popup-btn:hover { background: #3A5A8A; }
+        
+        .popup-trigger:hover {
+            background: #3A5A8A;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        
+        .popup-trigger svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Popup Overlay */
         .overlay {
             display: none;
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
             z-index: 10000;
+            backdrop-filter: blur(3px);
         }
+        
         .popup {
             position: fixed;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 90vw;
-            max-height: 90vh;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 10001;
+            max-width: 95vw;
+            max-height: 95vh;
+            overflow: auto;
         }
-        .popup-img {
+        
+        .popup-image {
             max-width: 100%;
-            max-height: 70vh;
+            max-height: 75vh;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
         }
-        .close {
+        
+        .close-btn {
             position: absolute;
-            top: -10px; right: -10px;
+            top: -12px;
+            right: -12px;
             background: #333;
             color: white;
-            border-radius: 50%;
-            width: 25px; height: 25px;
             border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .close-btn:hover {
+            background: #000;
+        }
+        
+        .caption {
+            text-align: center;
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .popup {
+                padding: 15px;
+                width: 95vw;
+            }
+            
+            .popup-trigger {
+                padding: 12px 20px;
+                font-size: 16px; /* Larger for mobile */
+            }
         }
     </style>
 </head>
 <body>
-    <button class="popup-btn" onclick="document.getElementById('popup').style.display='block'">
-        📷 View Reference Image
-    </button>
-    
-    <div class="overlay" id="popup" onclick="this.style.display='none'">
-        <div class="popup" onclick="event.stopPropagation()">
-            <button class="close" onclick="document.getElementById('popup').style.display='none'">×</button>
-            <img class="popup-img" src="YOUR_IMAGE_URL_HERE" alt="Reference">
+    <div class="image-popup-container">
+        <button class="popup-trigger" onclick="openPopup()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            View Reference Image
+        </button>
+        
+        <div class="overlay" id="imagePopup" onclick="closePopup()">
+            <div class="popup" onclick="event.stopPropagation()">
+                <button class="close-btn" onclick="closePopup()">×</button>
+                <img id="popupImage" class="popup-image" src="" alt="Reference Image">
+                <div id="imageCaption" class="caption"></div>
+            </div>
         </div>
     </div>
-    
+
     <script>
-        // Set your image URL here
-        const imageUrl = "YOUR_IMAGE_URL_HERE";
-        document.querySelector('.popup-img').src = imageUrl;
+        // CONFIGURATION - Set your values here
+        const config = {
+            // Replace with your actual image URL
+            imageUrl: "https://via.placeholder.com/800x600/4A6FA5/FFFFFF?text=Reference+Image",
+            
+            // Optional caption
+            caption: "Example reference image for form completion",
+            
+            // Button text
+            buttonText: "View Reference Image",
+            
+            // Link text for accessibility
+            linkText: "Open reference image in pop-up"
+        };
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set button text
+            const button = document.querySelector('.popup-trigger');
+            button.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                ${config.buttonText}
+            `;
+            
+            // Set image source
+            document.getElementById('popupImage').src = config.imageUrl;
+            document.getElementById('popupImage').alt = config.linkText;
+            
+            // Set caption if provided
+            if (config.caption) {
+                document.getElementById('imageCaption').textContent = config.caption;
+            }
+            
+            // Add ARIA attributes for accessibility
+            button.setAttribute('aria-label', config.linkText);
+        });
+        
+        // Popup functions
+        function openPopup() {
+            document.getElementById('imagePopup').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closePopup() {
+            document.getElementById('imagePopup').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePopup();
+            }
+        });
+        
+        // Resize handler for Jotform iframe
+        function resizeIframe() {
+            if (window.parent !== window) {
+                const height = document.body.scrollHeight;
+                window.parent.postMessage({
+                    type: 'resize',
+                    height: height
+                }, '*');
+            }
+        }
+        
+        // Initial resize
+        setTimeout(resizeIframe, 100);
+        
+        // Resize on popup open/close
+        window.openPopup = function() {
+            openPopup();
+            setTimeout(resizeIframe, 300);
+        };
+        
+        window.closePopup = function() {
+            closePopup();
+            setTimeout(resizeIframe, 100);
+        };
     </script>
 </body>
 </html>
