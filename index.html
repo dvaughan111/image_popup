@@ -54,7 +54,7 @@
             fill: white;
         }
         
-        /* Popup Styles */
+        /* LARGER POPUP STYLES */
         .overlay {
             display: none;
             position: fixed;
@@ -62,7 +62,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 10000;
             animation: fadeIn 0.3s ease;
         }
@@ -73,53 +73,162 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            border-radius: 10px;
-            padding: 30px;
-            max-width: 90vw;
-            max-height: 90vh;
-            overflow: auto;
+            border-radius: 8px;
+            padding: 15px;
+            width: 96vw; /* 96% of viewport width - VERY LARGE */
+            height: 96vh; /* 96% of viewport height - VERY LARGE */
             z-index: 10001;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             animation: slideIn 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            flex-shrink: 0;
+        }
+        
+        .popup-title {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .popup-content {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 0;
+            padding: 10px 0;
         }
         
         .popup-image {
-            max-width: 100%;
-            max-height: 70vh;
+            max-width: none; /* Remove max-width restriction */
+            max-height: none; /* Remove max-height restriction */
+            width: auto;
+            height: auto;
             display: block;
-            margin: 0 auto;
-            border-radius: 4px;
+            transition: transform 0.3s ease;
+            cursor: zoom-in;
         }
         
-        .close-btn {
-            position: absolute;
-            top: -15px;
-            right: -15px;
-            background: #333;
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 22px;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
+        .popup-image.zoomed {
+            cursor: zoom-out;
         }
         
-        .close-btn:hover {
-            background: #000;
+        .popup-footer {
+            flex-shrink: 0;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
         }
         
         .caption {
             text-align: center;
-            margin-top: 15px;
             color: #666;
             font-size: 14px;
             font-style: italic;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: #4A6FA5;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .control-btn:hover {
+            background: #3A5A8A;
+            transform: translateY(-1px);
+        }
+        
+        .control-btn:active {
+            transform: translateY(0);
+        }
+        
+        .close-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .close-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+        
+        /* Fullscreen mode */
+        .popup.fullscreen {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            padding: 10px;
+        }
+        
+        .overlay.fullscreen-bg {
+            background: rgba(0, 0, 0, 1);
+        }
+        
+        /* Zoom level indicator */
+        .zoom-level {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 10002;
+            display: none;
+        }
+        
+        /* Scroll hint */
+        .scroll-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            z-index: 10002;
+            animation: fadeInOut 3s ease-in-out;
+            display: none;
         }
         
         /* Animations */
@@ -139,16 +248,31 @@
             }
         }
         
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            20%, 80% { opacity: 1; }
+        }
+        
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .popup {
-                padding: 20px;
-                width: 95vw;
+                width: 98vw;
+                height: 98vh;
+                padding: 10px;
             }
             
             .popup-btn {
                 padding: 15px 25px;
                 font-size: 18px;
+            }
+            
+            .controls {
+                gap: 5px;
+            }
+            
+            .control-btn {
+                padding: 6px 12px;
+                font-size: 12px;
             }
         }
     </style>
@@ -164,21 +288,50 @@
         
         <div class="overlay" id="overlay">
             <div class="popup">
-                <button class="close-btn" id="closePopup">×</button>
-                <img class="popup-image" id="popupImage" src="" alt="Reference Image">
-                <div class="caption" id="caption"></div>
+                <div class="popup-header">
+                    <div class="popup-title">Reference Image</div>
+                    <button class="close-btn" id="closePopup">×</button>
+                </div>
+                
+                <div class="popup-content">
+                    <img class="popup-image" id="popupImage" src="" alt="Reference Image">
+                </div>
+                
+                <div class="popup-footer">
+                    <div class="caption" id="caption"></div>
+                    <div class="controls">
+                        <button class="control-btn" id="zoomIn">
+                            <span>Zoom In</span>
+                        </button>
+                        <button class="control-btn" id="zoomOut">
+                            <span>Zoom Out</span>
+                        </button>
+                        <button class="control-btn" id="zoomReset">
+                            <span>Reset</span>
+                        </button>
+                        <button class="control-btn" id="fullscreen">
+                            <span>Fullscreen</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
+        
+        <!-- Zoom level indicator -->
+        <div class="zoom-level" id="zoomLevel"></div>
+        
+        <!-- Scroll hint -->
+        <div class="scroll-hint" id="scrollHint">Use scroll wheel to zoom • Drag to pan</div>
     </div>
 
     <script>
         // CONFIGURATION - SET YOUR VALUES HERE
         const CONFIG = {
-            // TEST IMAGE - Replace with your actual image URL
+            // Your image URL
             imageUrl: "https://raw.githubusercontent.com/dvaughan111/image_popup/main/images/reference_image.png",
             
             // Optional: Add your caption here
-            caption: "Sample reference image - Replace with your actual reference guide",
+            caption: "Reference image for form completion",
             
             // Button text
             buttonText: "View Reference Image",
@@ -186,9 +339,18 @@
             // Button color (CSS color value)
             buttonColor: "#4A6FA5",
             
-            // Popup width (in pixels or percentage)
-            popupWidth: "800px"
+            // Initial zoom level (1 = 100%)
+            initialZoom: 1.0,
+            
+            // Show zoom controls
+            showZoomControls: true
         };
+        
+        // Global variables
+        let currentScale = CONFIG.initialZoom;
+        let isDragging = false;
+        let startX, startY, scrollLeft, scrollTop;
+        let zoomTimeout;
         
         // Initialize the widget
         document.addEventListener('DOMContentLoaded', function() {
@@ -198,6 +360,9 @@
             const overlay = document.getElementById('overlay');
             const popupImage = document.getElementById('popupImage');
             const caption = document.getElementById('caption');
+            const popupContent = document.querySelector('.popup-content');
+            const zoomLevel = document.getElementById('zoomLevel');
+            const scrollHint = document.getElementById('scrollHint');
             
             // Apply configuration
             openBtn.innerHTML = `
@@ -208,7 +373,6 @@
             `;
             
             openBtn.style.backgroundColor = CONFIG.buttonColor;
-            document.querySelector('.popup').style.maxWidth = CONFIG.popupWidth;
             popupImage.src = CONFIG.imageUrl;
             
             if (CONFIG.caption) {
@@ -221,7 +385,7 @@
             openBtn.addEventListener('click', function() {
                 overlay.style.display = 'block';
                 document.body.style.overflow = 'hidden';
-                // Resize for Jotform
+                resetImagePosition();
                 resizeIframe();
             });
             
@@ -239,15 +403,221 @@
                 }
             });
             
+            // Setup zoom functionality
+            setupZoomControls();
+            
             // Initial iframe resize
             setTimeout(resizeIframe, 100);
+            
+            // Image load handler
+            popupImage.onload = function() {
+                // Set initial zoom
+                applyZoom(currentScale);
+                
+                // Show scroll hint briefly if image is large
+                if (this.naturalWidth > popupContent.clientWidth || 
+                    this.naturalHeight > popupContent.clientHeight) {
+                    showScrollHint();
+                }
+            };
+            
+            // Mouse wheel zoom
+            popupContent.addEventListener('wheel', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    zoomImage(currentScale + delta);
+                }
+            }, { passive: false });
+            
+            // Image dragging for panning
+            popupImage.addEventListener('mousedown', startDragging);
+            popupImage.addEventListener('touchstart', startDraggingTouch);
+            
+            // Hide controls if disabled
+            if (!CONFIG.showZoomControls) {
+                document.querySelector('.controls').style.display = 'none';
+            }
         });
         
         function closePopup() {
             document.getElementById('overlay').style.display = 'none';
             document.body.style.overflow = 'auto';
-            // Resize for Jotform
             setTimeout(resizeIframe, 100);
+        }
+        
+        function setupZoomControls() {
+            const zoomInBtn = document.getElementById('zoomIn');
+            const zoomOutBtn = document.getElementById('zoomOut');
+            const zoomResetBtn = document.getElementById('zoomReset');
+            const fullscreenBtn = document.getElementById('fullscreen');
+            const popup = document.querySelector('.popup');
+            const overlay = document.getElementById('overlay');
+            
+            zoomInBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                zoomImage(currentScale + 0.25);
+            });
+            
+            zoomOutBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                zoomImage(currentScale - 0.25);
+            });
+            
+            zoomResetBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                zoomImage(1.0);
+                resetImagePosition();
+            });
+            
+            fullscreenBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isFullscreen = popup.classList.toggle('fullscreen');
+                overlay.classList.toggle('fullscreen-bg', isFullscreen);
+                fullscreenBtn.innerHTML = isFullscreen ? 
+                    '<span>Exit Fullscreen</span>' : 
+                    '<span>Fullscreen</span>';
+                
+                // Reset to center when exiting fullscreen
+                if (!isFullscreen) {
+                    resetImagePosition();
+                }
+                
+                resizeIframe();
+            });
+        }
+        
+        function zoomImage(scale) {
+            // Clamp zoom between 0.1x and 5x
+            scale = Math.max(0.1, Math.min(5, scale));
+            currentScale = scale;
+            
+            applyZoom(scale);
+            showZoomLevel(scale);
+        }
+        
+        function applyZoom(scale) {
+            const popupImage = document.getElementById('popupImage');
+            const popupContent = document.querySelector('.popup-content');
+            
+            popupImage.style.transform = `scale(${scale})`;
+            
+            if (scale > 1) {
+                popupImage.classList.add('zoomed');
+                popupImage.style.cursor = 'grab';
+                showScrollHint();
+            } else {
+                popupImage.classList.remove('zoomed');
+                popupImage.style.cursor = 'zoom-in';
+            }
+            
+            // Center image after zoom
+            setTimeout(() => {
+                popupContent.scrollLeft = (popupImage.offsetWidth * scale - popupContent.clientWidth) / 2;
+                popupContent.scrollTop = (popupImage.offsetHeight * scale - popupContent.clientHeight) / 2;
+            }, 10);
+        }
+        
+        function resetImagePosition() {
+            const popupContent = document.querySelector('.popup-content');
+            popupContent.scrollLeft = 0;
+            popupContent.scrollTop = 0;
+        }
+        
+        function showZoomLevel(scale) {
+            const zoomLevel = document.getElementById('zoomLevel');
+            zoomLevel.textContent = `Zoom: ${Math.round(scale * 100)}%`;
+            zoomLevel.style.display = 'block';
+            
+            clearTimeout(zoomTimeout);
+            zoomTimeout = setTimeout(() => {
+                zoomLevel.style.display = 'none';
+            }, 1500);
+        }
+        
+        function showScrollHint() {
+            const scrollHint = document.getElementById('scrollHint');
+            scrollHint.style.display = 'block';
+            
+            setTimeout(() => {
+                scrollHint.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Dragging functionality for panning
+        function startDragging(e) {
+            if (currentScale <= 1) return;
+            
+            const popupImage = document.getElementById('popupImage');
+            const popupContent = document.querySelector('.popup-content');
+            
+            isDragging = true;
+            popupImage.style.cursor = 'grabbing';
+            
+            startX = e.pageX - popupContent.offsetLeft;
+            startY = e.pageY - popupContent.offsetTop;
+            scrollLeft = popupContent.scrollLeft;
+            scrollTop = popupContent.scrollTop;
+            
+            document.addEventListener('mousemove', doDragging);
+            document.addEventListener('mouseup', stopDragging);
+        }
+        
+        function startDraggingTouch(e) {
+            if (currentScale <= 1 || !e.touches[0]) return;
+            
+            const popupImage = document.getElementById('popupImage');
+            const popupContent = document.querySelector('.popup-content');
+            
+            isDragging = true;
+            
+            startX = e.touches[0].pageX - popupContent.offsetLeft;
+            startY = e.touches[0].pageY - popupContent.offsetTop;
+            scrollLeft = popupContent.scrollLeft;
+            scrollTop = popupContent.scrollTop;
+            
+            document.addEventListener('touchmove', doDraggingTouch);
+            document.addEventListener('touchend', stopDragging);
+        }
+        
+        function doDragging(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            const popupContent = document.querySelector('.popup-content');
+            const x = e.pageX - popupContent.offsetLeft;
+            const y = e.pageY - popupContent.offsetTop;
+            const walkX = (x - startX) * 1.5;
+            const walkY = (y - startY) * 1.5;
+            
+            popupContent.scrollLeft = scrollLeft - walkX;
+            popupContent.scrollTop = scrollTop - walkY;
+        }
+        
+        function doDraggingTouch(e) {
+            if (!isDragging || !e.touches[0]) return;
+            e.preventDefault();
+            
+            const popupContent = document.querySelector('.popup-content');
+            const x = e.touches[0].pageX - popupContent.offsetLeft;
+            const y = e.touches[0].pageY - popupContent.offsetTop;
+            const walkX = (x - startX) * 1.5;
+            const walkY = (y - startY) * 1.5;
+            
+            popupContent.scrollLeft = scrollLeft - walkX;
+            popupContent.scrollTop = scrollTop - walkY;
+        }
+        
+        function stopDragging() {
+            isDragging = false;
+            const popupImage = document.getElementById('popupImage');
+            if (currentScale > 1) {
+                popupImage.style.cursor = 'grab';
+            }
+            document.removeEventListener('mousemove', doDragging);
+            document.removeEventListener('touchmove', doDraggingTouch);
+            document.removeEventListener('mouseup', stopDragging);
+            document.removeEventListener('touchend', stopDragging);
         }
         
         // CRITICAL: This function makes it work properly in Jotform
