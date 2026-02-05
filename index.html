@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Image Pop-up Reference</title>
+    <title>Image Pop-up for Jotform</title>
     <style>
+        /* RESET FOR JOTFORM IFRAME */
         * {
             margin: 0;
             padding: 0;
@@ -13,16 +14,44 @@
         
         body {
             font-family: Arial, sans-serif;
-            padding: 20px;
-            background: #f5f5f5;
-            min-height: 100px;
+            background: transparent !important;
+            overflow: hidden;
+            width: 100%;
         }
         
-        .container {
+        /* Button Container - Stays visible */
+        .button-container {
             text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
         }
         
-        .popup-btn {
+        .button-container.hidden {
+            display: none;
+        }
+        
+        /* Image Container - Hidden by default */
+        .image-container {
+            display: none;
+            position: relative;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .image-container.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        /* Button Styles */
+        .view-btn {
             background: #4A6FA5;
             color: white;
             border: none;
@@ -35,16 +64,17 @@
             align-items: center;
             gap: 10px;
             transition: all 0.3s ease;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            justify-content: center;
         }
         
-        .popup-btn:hover {
+        .view-btn:hover {
             background: #3A5A8A;
             transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
-        .popup-btn:active {
+        .view-btn:active {
             transform: translateY(0);
         }
         
@@ -54,274 +84,143 @@
             fill: white;
         }
         
-        /* LARGER POPUP STYLES */
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            width: 96vw; /* 96% of viewport width - VERY LARGE */
-            height: 96vh; /* 96% of viewport height - VERY LARGE */
-            z-index: 10001;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            animation: slideIn 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            flex-shrink: 0;
-        }
-        
-        .popup-title {
-            font-weight: bold;
-            color: #333;
-            font-size: 16px;
-        }
-        
-        .popup-content {
-            flex: 1;
-            overflow: auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 0;
-            padding: 10px 0;
-        }
-        
-        .popup-image {
-            max-width: none; /* Remove max-width restriction */
-            max-height: none; /* Remove max-height restriction */
-            width: auto;
+        /* Image Styles */
+        .reference-image {
+            max-width: 100%;
             height: auto;
             display: block;
-            transition: transform 0.3s ease;
-            cursor: zoom-in;
-        }
-        
-        .popup-image.zoomed {
-            cursor: zoom-out;
-        }
-        
-        .popup-footer {
-            flex-shrink: 0;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-        
-        .caption {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-            font-style: italic;
-            margin-bottom: 10px;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .control-btn {
-            background: #4A6FA5;
-            color: white;
-            border: none;
-            padding: 8px 16px;
+            margin: 0 auto 15px auto;
             border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
-        .control-btn:hover {
-            background: #3A5A8A;
-            transform: translateY(-1px);
-        }
-        
-        .control-btn:active {
-            transform: translateY(0);
-        }
-        
+        /* Close Button */
         .close-btn {
-            background: #dc3545;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #6c757d;
             color: white;
             border: none;
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 18px;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            flex-shrink: 0;
+            z-index: 10;
         }
         
         .close-btn:hover {
-            background: #c82333;
+            background: #545b62;
             transform: scale(1.1);
         }
         
-        /* Fullscreen mode */
-        .popup.fullscreen {
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
-            padding: 10px;
-        }
-        
-        .overlay.fullscreen-bg {
-            background: rgba(0, 0, 0, 1);
-        }
-        
-        /* Zoom level indicator */
-        .zoom-level {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.7);
+        .hide-btn {
+            background: #6c757d;
             color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 14px;
-            z-index: 10002;
-            display: none;
-        }
-        
-        /* Scroll hint */
-        .scroll-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            color: white;
+            border: none;
             padding: 8px 16px;
             border-radius: 4px;
-            font-size: 13px;
-            z-index: 10002;
-            animation: fadeInOut 3s ease-in-out;
-            display: none;
+            cursor: pointer;
+            font-size: 14px;
+            display: block;
+            margin: 10px auto 0 auto;
+            transition: all 0.2s;
+        }
+        
+        .hide-btn:hover {
+            background: #545b62;
+        }
+        
+        /* Caption */
+        .caption {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
         }
         
         /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -40%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
+        /* Zoom Controls */
+        .zoom-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
         }
         
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            20%, 80% { opacity: 1; }
+        .zoom-btn {
+            background: #4A6FA5;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
         }
         
-        /* Mobile responsiveness */
+        .zoom-btn:hover {
+            background: #3A5A8A;
+        }
+        
+        /* Responsive */
         @media (max-width: 768px) {
-            .popup {
-                width: 98vw;
-                height: 98vh;
-                padding: 10px;
+            .view-btn {
+                padding: 15px;
+                font-size: 16px;
             }
             
-            .popup-btn {
-                padding: 15px 25px;
-                font-size: 18px;
-            }
-            
-            .controls {
-                gap: 5px;
-            }
-            
-            .control-btn {
-                padding: 6px 12px;
-                font-size: 12px;
+            .image-container {
+                max-height: 400px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <button class="popup-btn" id="openPopup">
+    <!-- Button Container (Always visible initially) -->
+    <div class="button-container" id="buttonContainer">
+        <button class="view-btn" id="viewImageBtn">
             <svg class="icon" viewBox="0 0 24 24">
                 <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
             </svg>
             View Reference Image
         </button>
+    </div>
+    
+    <!-- Image Container (Hidden initially) -->
+    <div class="image-container" id="imageContainer">
+        <button class="close-btn" id="closeImageBtn">×</button>
         
-        <div class="overlay" id="overlay">
-            <div class="popup">
-                <div class="popup-header">
-                    <div class="popup-title">Reference Image</div>
-                    <button class="close-btn" id="closePopup">×</button>
-                </div>
-                
-                <div class="popup-content">
-                    <img class="popup-image" id="popupImage" src="" alt="Reference Image">
-                </div>
-                
-                <div class="popup-footer">
-                    <div class="caption" id="caption"></div>
-                    <div class="controls">
-                        <button class="control-btn" id="zoomIn">
-                            <span>Zoom In</span>
-                        </button>
-                        <button class="control-btn" id="zoomOut">
-                            <span>Zoom Out</span>
-                        </button>
-                        <button class="control-btn" id="zoomReset">
-                            <span>Reset</span>
-                        </button>
-                        <button class="control-btn" id="fullscreen">
-                            <span>Fullscreen</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <!-- Image will be inserted here -->
+        <div id="imageWrapper"></div>
+        
+        <!-- Caption -->
+        <div class="caption" id="caption"></div>
+        
+        <!-- Zoom Controls -->
+        <div class="zoom-controls">
+            <button class="zoom-btn" id="zoomInBtn">Zoom In</button>
+            <button class="zoom-btn" id="zoomOutBtn">Zoom Out</button>
+            <button class="zoom-btn" id="resetZoomBtn">Reset Zoom</button>
         </div>
         
-        <!-- Zoom level indicator -->
-        <div class="zoom-level" id="zoomLevel"></div>
-        
-        <!-- Scroll hint -->
-        <div class="scroll-hint" id="scrollHint">Use scroll wheel to zoom • Drag to pan</div>
+        <button class="hide-btn" id="hideImageBtn">Hide Image</button>
     </div>
 
     <script>
@@ -330,318 +229,201 @@
             // Your image URL
             imageUrl: "https://raw.githubusercontent.com/dvaughan111/image_popup/main/images/reference_image.png",
             
-            // Optional: Add your caption here
+            // Optional caption
             caption: "Reference image for form completion",
             
             // Button text
             buttonText: "View Reference Image",
             
-            // Button color (CSS color value)
-            buttonColor: "#4A6FA5",
+            // Hide button text
+            hideButtonText: "Hide Image",
             
-            // Initial zoom level (1 = 100%)
-            initialZoom: 1.0,
+            // Initial image scale (1 = 100%)
+            initialScale: 1,
             
-            // Show zoom controls
-            showZoomControls: true
+            // Maximum image scale
+            maxScale: 3,
+            
+            // Minimum image scale
+            minScale: 0.5,
+            
+            // Zoom step
+            zoomStep: 0.25
         };
         
-        // Global variables
-        let currentScale = CONFIG.initialZoom;
-        let isDragging = false;
-        let startX, startY, scrollLeft, scrollTop;
-        let zoomTimeout;
+        // State variables
+        let currentScale = CONFIG.initialScale;
+        let imageElement = null;
         
-        // Initialize the widget
+        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Get elements
-            const openBtn = document.getElementById('openPopup');
-            const closeBtn = document.getElementById('closePopup');
-            const overlay = document.getElementById('overlay');
-            const popupImage = document.getElementById('popupImage');
+            const viewBtn = document.getElementById('viewImageBtn');
+            const closeBtn = document.getElementById('closeImageBtn');
+            const hideBtn = document.getElementById('hideImageBtn');
+            const buttonContainer = document.getElementById('buttonContainer');
+            const imageContainer = document.getElementById('imageContainer');
+            const imageWrapper = document.getElementById('imageWrapper');
             const caption = document.getElementById('caption');
-            const popupContent = document.querySelector('.popup-content');
-            const zoomLevel = document.getElementById('zoomLevel');
-            const scrollHint = document.getElementById('scrollHint');
             
-            // Apply configuration
-            openBtn.innerHTML = `
+            // Set button text
+            viewBtn.innerHTML = `
                 <svg class="icon" viewBox="0 0 24 24">
                     <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
                 </svg>
                 ${CONFIG.buttonText}
             `;
             
-            openBtn.style.backgroundColor = CONFIG.buttonColor;
-            popupImage.src = CONFIG.imageUrl;
+            hideBtn.textContent = CONFIG.hideButtonText;
             
+            // Set caption
             if (CONFIG.caption) {
                 caption.textContent = CONFIG.caption;
             } else {
                 caption.style.display = 'none';
             }
             
-            // Event listeners
-            openBtn.addEventListener('click', function() {
-                overlay.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-                resetImagePosition();
-                resizeIframe();
-            });
+            // Create and setup image
+            imageElement = document.createElement('img');
+            imageElement.className = 'reference-image';
+            imageElement.src = CONFIG.imageUrl;
+            imageElement.alt = 'Reference Image';
+            imageElement.style.transform = `scale(${currentScale})`;
+            imageElement.style.transformOrigin = 'center center';
+            imageElement.style.transition = 'transform 0.3s ease';
             
-            closeBtn.addEventListener('click', closePopup);
-            overlay.addEventListener('click', function(e) {
-                if (e.target === overlay) {
-                    closePopup();
-                }
-            });
+            imageWrapper.appendChild(imageElement);
             
-            // Close with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closePopup();
-                }
-            });
+            // Event Listeners
+            viewBtn.addEventListener('click', showImage);
+            closeBtn.addEventListener('click', hideImage);
+            hideBtn.addEventListener('click', hideImage);
             
-            // Setup zoom functionality
+            // Setup zoom controls
             setupZoomControls();
             
-            // Initial iframe resize
-            setTimeout(resizeIframe, 100);
+            // Resize iframe for Jotform
+            resizeIframe();
             
-            // Image load handler
-            popupImage.onload = function() {
-                // Set initial zoom
-                applyZoom(currentScale);
-                
-                // Show scroll hint briefly if image is large
-                if (this.naturalWidth > popupContent.clientWidth || 
-                    this.naturalHeight > popupContent.clientHeight) {
-                    showScrollHint();
-                }
+            // Handle image load
+            imageElement.onload = function() {
+                resizeIframe();
             };
-            
-            // Mouse wheel zoom
-            popupContent.addEventListener('wheel', function(e) {
-                if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                    zoomImage(currentScale + delta);
-                }
-            }, { passive: false });
-            
-            // Image dragging for panning
-            popupImage.addEventListener('mousedown', startDragging);
-            popupImage.addEventListener('touchstart', startDraggingTouch);
-            
-            // Hide controls if disabled
-            if (!CONFIG.showZoomControls) {
-                document.querySelector('.controls').style.display = 'none';
-            }
         });
         
-        function closePopup() {
-            document.getElementById('overlay').style.display = 'none';
-            document.body.style.overflow = 'auto';
+        function showImage() {
+            const buttonContainer = document.getElementById('buttonContainer');
+            const imageContainer = document.getElementById('imageContainer');
+            
+            buttonContainer.classList.add('hidden');
+            imageContainer.classList.add('visible');
+            
+            // Reset zoom when showing
+            currentScale = CONFIG.initialScale;
+            if (imageElement) {
+                imageElement.style.transform = `scale(${currentScale})`;
+            }
+            
+            // Resize iframe for Jotform
+            setTimeout(resizeIframe, 100);
+        }
+        
+        function hideImage() {
+            const buttonContainer = document.getElementById('buttonContainer');
+            const imageContainer = document.getElementById('imageContainer');
+            
+            buttonContainer.classList.remove('hidden');
+            imageContainer.classList.remove('visible');
+            
+            // Resize iframe for Jotform
             setTimeout(resizeIframe, 100);
         }
         
         function setupZoomControls() {
-            const zoomInBtn = document.getElementById('zoomIn');
-            const zoomOutBtn = document.getElementById('zoomOut');
-            const zoomResetBtn = document.getElementById('zoomReset');
-            const fullscreenBtn = document.getElementById('fullscreen');
-            const popup = document.querySelector('.popup');
-            const overlay = document.getElementById('overlay');
+            const zoomInBtn = document.getElementById('zoomInBtn');
+            const zoomOutBtn = document.getElementById('zoomOutBtn');
+            const resetZoomBtn = document.getElementById('resetZoomBtn');
             
-            zoomInBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                zoomImage(currentScale + 0.25);
+            zoomInBtn.addEventListener('click', function() {
+                zoomImage(CONFIG.zoomStep);
             });
             
-            zoomOutBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                zoomImage(currentScale - 0.25);
+            zoomOutBtn.addEventListener('click', function() {
+                zoomImage(-CONFIG.zoomStep);
             });
             
-            zoomResetBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                zoomImage(1.0);
-                resetImagePosition();
-            });
-            
-            fullscreenBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const isFullscreen = popup.classList.toggle('fullscreen');
-                overlay.classList.toggle('fullscreen-bg', isFullscreen);
-                fullscreenBtn.innerHTML = isFullscreen ? 
-                    '<span>Exit Fullscreen</span>' : 
-                    '<span>Fullscreen</span>';
-                
-                // Reset to center when exiting fullscreen
-                if (!isFullscreen) {
-                    resetImagePosition();
+            resetZoomBtn.addEventListener('click', function() {
+                currentScale = CONFIG.initialScale;
+                if (imageElement) {
+                    imageElement.style.transform = `scale(${currentScale})`;
                 }
-                
-                resizeIframe();
             });
         }
         
-        function zoomImage(scale) {
-            // Clamp zoom between 0.1x and 5x
-            scale = Math.max(0.1, Math.min(5, scale));
-            currentScale = scale;
+        function zoomImage(delta) {
+            currentScale += delta;
             
-            applyZoom(scale);
-            showZoomLevel(scale);
-        }
-        
-        function applyZoom(scale) {
-            const popupImage = document.getElementById('popupImage');
-            const popupContent = document.querySelector('.popup-content');
+            // Clamp scale within limits
+            currentScale = Math.max(CONFIG.minScale, 
+                                 Math.min(CONFIG.maxScale, currentScale));
             
-            popupImage.style.transform = `scale(${scale})`;
-            
-            if (scale > 1) {
-                popupImage.classList.add('zoomed');
-                popupImage.style.cursor = 'grab';
-                showScrollHint();
-            } else {
-                popupImage.classList.remove('zoomed');
-                popupImage.style.cursor = 'zoom-in';
+            if (imageElement) {
+                imageElement.style.transform = `scale(${currentScale})`;
             }
-            
-            // Center image after zoom
-            setTimeout(() => {
-                popupContent.scrollLeft = (popupImage.offsetWidth * scale - popupContent.clientWidth) / 2;
-                popupContent.scrollTop = (popupImage.offsetHeight * scale - popupContent.clientHeight) / 2;
-            }, 10);
         }
         
-        function resetImagePosition() {
-            const popupContent = document.querySelector('.popup-content');
-            popupContent.scrollLeft = 0;
-            popupContent.scrollTop = 0;
-        }
-        
-        function showZoomLevel(scale) {
-            const zoomLevel = document.getElementById('zoomLevel');
-            zoomLevel.textContent = `Zoom: ${Math.round(scale * 100)}%`;
-            zoomLevel.style.display = 'block';
-            
-            clearTimeout(zoomTimeout);
-            zoomTimeout = setTimeout(() => {
-                zoomLevel.style.display = 'none';
-            }, 1500);
-        }
-        
-        function showScrollHint() {
-            const scrollHint = document.getElementById('scrollHint');
-            scrollHint.style.display = 'block';
-            
-            setTimeout(() => {
-                scrollHint.style.display = 'none';
-            }, 3000);
-        }
-        
-        // Dragging functionality for panning
-        function startDragging(e) {
-            if (currentScale <= 1) return;
-            
-            const popupImage = document.getElementById('popupImage');
-            const popupContent = document.querySelector('.popup-content');
-            
-            isDragging = true;
-            popupImage.style.cursor = 'grabbing';
-            
-            startX = e.pageX - popupContent.offsetLeft;
-            startY = e.pageY - popupContent.offsetTop;
-            scrollLeft = popupContent.scrollLeft;
-            scrollTop = popupContent.scrollTop;
-            
-            document.addEventListener('mousemove', doDragging);
-            document.addEventListener('mouseup', stopDragging);
-        }
-        
-        function startDraggingTouch(e) {
-            if (currentScale <= 1 || !e.touches[0]) return;
-            
-            const popupImage = document.getElementById('popupImage');
-            const popupContent = document.querySelector('.popup-content');
-            
-            isDragging = true;
-            
-            startX = e.touches[0].pageX - popupContent.offsetLeft;
-            startY = e.touches[0].pageY - popupContent.offsetTop;
-            scrollLeft = popupContent.scrollLeft;
-            scrollTop = popupContent.scrollTop;
-            
-            document.addEventListener('touchmove', doDraggingTouch);
-            document.addEventListener('touchend', stopDragging);
-        }
-        
-        function doDragging(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-            
-            const popupContent = document.querySelector('.popup-content');
-            const x = e.pageX - popupContent.offsetLeft;
-            const y = e.pageY - popupContent.offsetTop;
-            const walkX = (x - startX) * 1.5;
-            const walkY = (y - startY) * 1.5;
-            
-            popupContent.scrollLeft = scrollLeft - walkX;
-            popupContent.scrollTop = scrollTop - walkY;
-        }
-        
-        function doDraggingTouch(e) {
-            if (!isDragging || !e.touches[0]) return;
-            e.preventDefault();
-            
-            const popupContent = document.querySelector('.popup-content');
-            const x = e.touches[0].pageX - popupContent.offsetLeft;
-            const y = e.touches[0].pageY - popupContent.offsetTop;
-            const walkX = (x - startX) * 1.5;
-            const walkY = (y - startY) * 1.5;
-            
-            popupContent.scrollLeft = scrollLeft - walkX;
-            popupContent.scrollTop = scrollTop - walkY;
-        }
-        
-        function stopDragging() {
-            isDragging = false;
-            const popupImage = document.getElementById('popupImage');
-            if (currentScale > 1) {
-                popupImage.style.cursor = 'grab';
-            }
-            document.removeEventListener('mousemove', doDragging);
-            document.removeEventListener('touchmove', doDraggingTouch);
-            document.removeEventListener('mouseup', stopDragging);
-            document.removeEventListener('touchend', stopDragging);
-        }
-        
-        // CRITICAL: This function makes it work properly in Jotform
+        // CRITICAL: Resize iframe for Jotform
         function resizeIframe() {
             try {
-                const height = document.body.scrollHeight;
+                // Calculate current height based on what's visible
+                const buttonContainer = document.getElementById('buttonContainer');
+                const imageContainer = document.getElementById('imageContainer');
+                
+                let height;
+                if (imageContainer.classList.contains('visible')) {
+                    // Image is showing
+                    height = imageContainer.scrollHeight;
+                } else {
+                    // Button is showing
+                    height = buttonContainer.scrollHeight;
+                }
+                
+                // Add some padding
+                height = Math.max(100, height + 20);
+                
+                // Send height to parent (Jotform)
                 if (window.parent !== window) {
                     window.parent.postMessage({
                         type: 'setHeight',
-                        height: height
+                        height: height,
+                        source: 'imagePopupWidget'
                     }, '*');
+                    
+                    // Also try Jotform's specific method
+                    if (typeof window.parent.setWidgetHeight === 'function') {
+                        window.parent.setWidgetHeight(height);
+                    }
                 }
-            } catch (e) {
-                console.log('Resize function working in standalone mode');
+            } catch (error) {
+                console.log('Iframe resize in standalone mode');
             }
         }
         
-        // Make functions available globally
-        window.openPopup = function() {
-            document.getElementById('overlay').style.display = 'block';
-            resizeIframe();
-        };
+        // Listen for Jotform resize requests
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'getHeight') {
+                resizeIframe();
+            }
+        });
         
-        window.closePopup = closePopup;
+        // Initial resize
+        window.addEventListener('load', function() {
+            setTimeout(resizeIframe, 500);
+        });
+        
+        // Make functions available globally (for Jotform)
+        window.showImage = showImage;
+        window.hideImage = hideImage;
         window.resizeIframe = resizeIframe;
     </script>
 </body>
